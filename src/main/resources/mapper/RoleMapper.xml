@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ponking.mapper.RoleMapper">
+
+    <select id="selectRolesByUserName" resultType="java.lang.String">
+        SELECT r.role_name
+        from acl_user u
+        RIGHT JOIN acl_user_role ur ON u.id = ur.user_id
+        RIGHT JOIN acl_role r ON ur.role_id = r.id
+        WHERE r.role_name is NOT NULL and u.username = #{name}
+    </select>
+</mapper>
