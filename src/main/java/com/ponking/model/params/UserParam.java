@@ -5,6 +5,7 @@ import com.ponking.model.entity.User;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -12,7 +13,9 @@ import java.util.List;
  * @date 2020/6/26--20:39
  **/
 @Data
-public class UserParam implements Converter<User> {
+public class UserParam implements Converter<User>, Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private String id;
     private String username;
@@ -25,7 +28,7 @@ public class UserParam implements Converter<User> {
     @Override
     public User convertTo() {
         User user = new User();
-        BeanUtils.copyProperties(this,user);
+        BeanUtils.copyProperties(this, user);
         return user;
     }
 }

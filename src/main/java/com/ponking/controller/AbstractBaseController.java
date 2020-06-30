@@ -1,9 +1,8 @@
 package com.ponking.controller;
 
-import com.ponking.model.dto.PermissionDTO;
-import com.ponking.model.params.PermissionParam;
+
+import com.ponking.model.params.BaseQuery;
 import com.ponking.model.result.Result;
-import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -11,29 +10,21 @@ import java.util.List;
  * @author Peng
  * @date 2020/6/27--9:54
  **/
-public class AbstractBaseController {
-//    public Result list(){
-//        return Result.success().data(result);
-//    }
-//
-//    public Result createBy(@RequestBody PermissionParam permissionParam){
-//        //TODO
-//        return Result.success();
-//    }
-//
-//    public Result updateBy(@RequestBody PermissionParam permissionParam){
-//        //TODO
-//        return Result.success();
-//    }
-//
-//    public Result removeBy(@PathVariable("id")String id){
-//        //TODO
-//        return Result.success();
-//    }
-//
-//    @DeleteMapping
-//    public Result removeBathBy(@RequestBody List<String> ids){
-//        //TODO
-//        return Result.success();
-//    }
+public interface AbstractBaseController {
+
+    Result fetchList();
+
+    default Result fetchList(BaseQuery query) {
+        return Result.success();
+    }
+
+    Result getById(String id);
+
+    <T> Result createBy(T param);
+
+    <T> Result updateBy(T param);
+
+    Result deleteById(String id);
+
+    Result deleteByIds(List<String> ids);
 }

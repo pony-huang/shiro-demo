@@ -32,14 +32,14 @@ public class UserController {
 
     @GetMapping
     @ApiOperation("获取用户分页")
-//    @RequiresPermissions("user:list")
+    @RequiresPermissions("user:list")
     public Result fetchList(UserQuery query){
         UserListVo data = userService.fetchList(query);
         return Result.success(data);
     }
 
     @GetMapping("{id:\\d+}")
-//    @RequiresPermissions("user:list")
+    @RequiresPermissions("user:list")
     @ApiOperation("获取用户")
     public Result getById(@PathVariable("id")String id){
         return Result.success().data(userService.convertTo(userService.getById(id)));

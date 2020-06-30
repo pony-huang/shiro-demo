@@ -1,12 +1,7 @@
 package com.ponking.model.params;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.ponking.model.base.Converter;
 import com.ponking.model.entity.Permission;
-import com.ponking.model.entity.Role;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NonNull;
 import org.springframework.beans.BeanUtils;

@@ -1,6 +1,7 @@
 package com.ponking.controller.api;
 
 
+import com.ponking.controller.AbstractBaseController;
 import com.ponking.model.dto.PermissionDTO;
 import com.ponking.model.entity.Permission;
 import com.ponking.model.params.PermissionParam;
@@ -28,15 +29,17 @@ public class PermissionController {
     @Autowired
     private PermissionService permissionService;
 
+
     @GetMapping
-//    @RequiresPermissions("permission:list")
-    public Result list(){
+    @RequiresPermissions("permission:list")
+    public Result fetchList(){
         List<PermissionDTO> result = permissionService.convertTo(permissionService.list());
         return Result.success().data(result);
     }
 
+
     @GetMapping("{id}")
-//    @RequiresPermissions("permission:list")
+    @RequiresPermissions("permission:list")
     public Result getById(@PathVariable("id")String id){
         Assert.notNull(id,"id is null");
         Permission data = permissionService.getById(id);
@@ -59,12 +62,14 @@ public class PermissionController {
         return Result.success();
     }
 
+
     @DeleteMapping("{id}")
     @RequiresPermissions("permission:remove")
     public Result deleteById(@PathVariable("id")String id){
         permissionService.removeById(id);
         return Result.success();
     }
+
 
     @DeleteMapping
     @RequiresPermissions("permission:remove")

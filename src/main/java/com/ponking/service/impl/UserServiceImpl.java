@@ -20,6 +20,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ponking.utils.RandomUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +43,7 @@ import java.util.stream.Collectors;
  * @since 2020-06-25
  */
 @Service
-public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService{
+public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
 
     @Autowired
@@ -58,15 +59,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public UserListVo fetchList(UserQuery query) {
         QueryWrapper<User> wrapper = new QueryWrapper<>();
-        wrapper.select("id","username","nick_name","gmt_create","gmt_modified");
+        wrapper.select("id", "username", "nick_name", "gmt_create", "gmt_modified");
         wrapper.orderByDesc("gmt_modified");
-        Page<User> page = new Page<>(query.getPage(),query.getLimit());
+        Page<User> page = new Page<>(query.getPage(), query.getLimit());
         baseMapper.selectPage(page, wrapper);
         long total = page.getTotal();
         List<UserVo> users = page.getRecords().stream()
-                .map(user->{
+                .map(user -> {
                     UserVo vo = new UserVo();
-                    BeanUtils.copyProperties(user,vo);
+                    BeanUtils.copyProperties(user, vo);
                     return vo;
                 }).collect(Collectors.toList());
 
@@ -76,12 +77,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public User getById(Serializable id) {
         QueryWrapper<UserRole> wrapper = new QueryWrapper<>();
-        wrapper.select("id","role_id","user_id");
-        wrapper.eq("user_id",id);
+        wrapper.select("id", "role_id", "user_id");
+        wrapper.eq("user_id", id);
         List<String> roleIds = userRoleService.list(wrapper).stream().map(UserRole::getRoleId)
                 .collect(Collectors.toList());
         List<Role> roleList = new ArrayList<>();
-        if(roleIds.size()>0){
+        if (roleIds.size() > 0) {
             roleList = roleService.listByIds(roleIds);
         }
 
@@ -95,52 +96,105 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void create(UserParam user) {
-        Assert.notNull(user,"param is null");
+        Assert.notNull(user, "param is null");
 
         User createUser = user.convertTo();
         String salt = RandomUtil.createSalt();
         createUser.setSalt(salt);
-        createUser.setPassword(RandomUtil.encryptByMd5(user.getPassword(),salt));
+        createUser.setPassword(RandomUtil.encryptByMd5(user.getPassword(), salt));
         this.save(createUser);
         user.setId(createUser.getId());
 
-        insertOrUpdateUserRole(user,UPDATE_OP);
-
+        if (user.getRoles().size() > 0) {
+            try {
+                assignRoles(user.getId(), user.getRoles(), INSERT_OP);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public boolean updateById(UserParam user) {
-        Assert.notNull(user,"user is null");
-        Assert.notNull(user.getId(),"user.id is null");
-        Assert.notNull(user.getPassword(),"user.password is null");
-        User dbUser = baseMapper.selectById(user.getId());
-        String test = RandomUtil.encryptByMd5(user.getOriginPassword(),dbUser.getSalt());
-        if (!dbUser.getPassword().equals(test)) {
-            throw new RuntimeException("原始密码错误");
+        Assert.notNull(user, "user is null");
+        Assert.notNull(user.getId(), "user.id is null");
+        Assert.notNull(user.getPassword(), "user.password is null");
+        isPwdRight(user);
+
+        if (user.getRoles().size() > 0) {
+            try {
+                assignRoles(user.getId(), user.getRoles(), UPDATE_OP);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        String salt = dbUser.getSalt();
-        if(StringUtils.isEmpty(salt)){
-            salt = RandomUtil.createSalt();
-        }
-        user.setPassword(RandomUtil.encryptByMd5(user.getPassword(),salt));
-        insertOrUpdateUserRole(user,UPDATE_OP);
+
         super.updateById(user.convertTo());
         return true;
     }
 
     /**
+     * 判断原始密码是否正确
+     * 如果SuperAdmin,能修改任何用户密码,不需要填写原始密码,直接修该(Super Admin)
+     * @param user
+     */
+    @RequiresPermissions("user:assign")
+    public void isPwdRight(UserParam user){
+        Subject subject = SecurityUtils.getSubject();
+        if (!subject.hasRole("Super Admin")) {
+            User dbUser = baseMapper.selectById(user.getId());
+            String test = RandomUtil.encryptByMd5(user.getOriginPassword(), dbUser.getSalt());
+            if (!dbUser.getPassword().equals(test)) {
+                throw new RuntimeException("原始密码错误");
+            }
+            String salt = dbUser.getSalt();
+            if (StringUtils.isEmpty(salt)) {
+                salt = RandomUtil.createSalt();
+            }
+            user.setPassword(RandomUtil.encryptByMd5(user.getPassword(), salt));
+        }
+    }
+
+    /**
+     * 分配角色(需要权限user:assign)
+     *
+     * @param userId
+     * @param roleIds
+     * @param op
+     */
+    @RequiresPermissions("user:assign")
+    private void assignRoles(String userId, List<String> roleIds, String op) {
+
+        // 若更新操作,先删除旧数据，在插入新数据达到更新目的
+        if (op.equals(UserServiceImpl.UPDATE_OP)) {
+            QueryWrapper<UserRole> wrapper = new QueryWrapper<>();
+            wrapper.eq("user_id", userId);
+            userRoleService.remove(wrapper);
+        }
+
+        List<UserRole> userRoles = roleIds.stream().map(roleId -> {
+            UserRole userRole = new UserRole();
+            userRole.setRoleId(roleId);
+            userRole.setUserId(userId);
+            return userRole;
+        }).collect(Collectors.toList());
+        userRoleService.saveBatch(userRoles);
+    }
+
+    /**
      * 更新或者插入操作
+     *
      * @param user
      * @param op
      */
-    private void insertOrUpdateUserRole(UserParam user,String op){
-        if(op.equals(UserServiceImpl.UPDATE_OP)){
+    @Deprecated
+    private void insertOrUpdateUserRole(UserParam user, String op) {
+        if (op.equals(UserServiceImpl.UPDATE_OP)) {
             QueryWrapper<UserRole> wrapper = new QueryWrapper<>();
-            wrapper.eq("user_id",user.getId());
+            wrapper.eq("user_id", user.getId());
             userRoleService.remove(wrapper);
         }
-        if (user.getRoles().size()>0) {
+        if (user.getRoles().size() > 0) {
             //先删除旧数据，在插入新数据达到更新目的
             List<UserRole> userRoles = user.getRoles().stream().map(roleId -> {
                 UserRole userRole = new UserRole();
@@ -154,10 +208,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public UserDTO convertTo(User source) {
-        Assert.notNull(source,"param is null");
+        Assert.notNull(source, "param is null");
         UserDTO userDTO = new UserDTO();
-        BeanUtils.copyProperties(source,userDTO);
-        if(source.getRoles().size()>0){
+        BeanUtils.copyProperties(source, userDTO);
+        if (source.getRoles().size() > 0) {
             List<String> roles = source.getRoles().stream()
                     .map(Role::getId).collect(Collectors.toList());
             userDTO.setRoles(roles);
@@ -168,9 +222,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public List<UserDTO> convertTo(List<User> sources) {
         return sources.stream()
-                .map(user->{
+                .map(user -> {
                     UserDTO userDTO = new UserDTO();
-                    BeanUtils.copyProperties(user,userDTO);
+                    BeanUtils.copyProperties(user, userDTO);
                     return userDTO;
                 }).collect(Collectors.toList());
     }

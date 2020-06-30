@@ -31,17 +31,17 @@ public class RoleController {
     @Autowired
     private RoleService roleService;
 
+//    @GetMapping
+//    @ApiOperation("获取角色列表")
+////    @RequiresPermissions("role:list")
+//    public Result fetchList(RoleQuery query){
+//        RoleListVo data = roleService.fetchList(query);
+//        return Result.success(data);
+//    }
+
     @GetMapping
     @ApiOperation("获取角色列表")
-//    @RequiresPermissions("role:list")
-    public Result fetchList(RoleQuery query){
-        RoleListVo data = roleService.fetchList(query);
-        return Result.success(data);
-    }
-
-    @GetMapping("list")
-    @ApiOperation("获取角色列表")
-//    @RequiresPermissions("role:list")
+    @RequiresPermissions("role:list")
     public Result fetchList(){
         return Result.success(roleService.fetchList());
     }

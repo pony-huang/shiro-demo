@@ -86,6 +86,12 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
                 .map(role -> {
                     RoleVo vo = new RoleVo();
                     BeanUtils.copyProperties(role, vo);
+                    QueryWrapper<RolePermission> qw = new QueryWrapper<>();
+                    qw.eq("role_id", vo.getId());
+                    List<String> permissions = rolePermissionService.list(qw).stream()
+                            .map(RolePermission::getPermissionId)
+                            .collect(Collectors.toList());
+                    vo.setPermissions(permissions);
                     return vo;
                 }).collect(Collectors.toList());
 
