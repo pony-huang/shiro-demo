@@ -53,6 +53,9 @@ public class User implements Serializable {
     @TableLogic
     private Boolean isDeleted;
 
+    @ApiModelProperty(value = "账号状态, 0 (默认) 可用，1禁用")
+    private Integer state;
+
     @TableField(exist = false)
     private List<Role> roles;
 

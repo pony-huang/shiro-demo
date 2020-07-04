@@ -1,14 +1,12 @@
-package com.ponking.shiro.config;
+package com.ponking.shiro;
 
-import com.ponking.config.cache.ShiroCacheManager;
+import com.ponking.cache.RedisCacheManager;
 import com.ponking.filter.AuthTokenFilter;
-import com.ponking.shiro.UserRealm;
+import com.ponking.shiro.AuthRealm;
+import com.ponking.utils.RedisUtil;
 import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
-import org.apache.shiro.cache.Cache;
-import org.apache.shiro.cache.CacheException;
 import org.apache.shiro.cache.CacheManager;
 import org.apache.shiro.cache.MemoryConstrainedCacheManager;
-import org.apache.shiro.crypto.hash.Hash;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.spring.LifecycleBeanPostProcessor;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
@@ -20,7 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 
+import javax.annotation.Resource;
 import javax.servlet.Filter;
 import java.util.*;
 
@@ -32,34 +32,37 @@ import java.util.*;
 @Configuration
 public class ShiroConfig {
 
+
+
+
+
     @Bean(name = "authRealm")
-    public UserRealm realm() {
-        UserRealm userRealm = new UserRealm();
-        userRealm.setCredentialsMatcher(hashedCredentialsMatcher());
-        userRealm.setCacheManager(cacheManager());
-        return userRealm;
+    public AuthRealm realm(@Qualifier(value = "cacheManager")CacheManager cacheManager) {
+        AuthRealm authRealm = new AuthRealm();
+        authRealm.setCredentialsMatcher(hashedCredentialsMatcher());
+        authRealm.setCacheManager(cacheManager);
+        return authRealm;
 
     }
+
+
 
     /**
      * 添加缓存
      * @return
      */
-    @Bean
+    @Bean(name = "cacheManager")
+    public CacheManager cacheManager(@Qualifier(value = "redisTemplate") RedisTemplate redisTemplate) {
+        return new RedisCacheManager(redisTemplate);
+    }
+
+
+    @Bean(name = "cacheManager")
     public CacheManager cacheManager() {
         MemoryConstrainedCacheManager cacheManager = new MemoryConstrainedCacheManager();
         return cacheManager;
     }
 
-//    @Autowired
-//    private org.springframework.cache.CacheManager springCacheManager;
-//
-//    @Bean
-//    public CacheManager cacheManager(){
-//        ShiroCacheManager<Object, Object> cacheManager =
-//                new ShiroCacheManager<>(springCacheManager);
-//        return cacheManager;
-//    }
 
     /**
      * 采用无会话token,禁用session
@@ -75,7 +78,7 @@ public class ShiroConfig {
 
 
     @Bean(name = "securityManager")
-    public SecurityManager securityManager(@Qualifier("authRealm") UserRealm authRealm) {
+    public SecurityManager securityManager(@Qualifier("authRealm") AuthRealm authRealm) {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
         securityManager.setRealm(authRealm);
         securityManager.setSessionManager(defaultWebSessionManager());

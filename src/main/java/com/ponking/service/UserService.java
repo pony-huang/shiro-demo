@@ -25,4 +25,6 @@ public interface UserService extends BaseService<UserDTO,User> {
     void create(UserParam user);
 
     boolean updateById(UserParam userParam);
+
+    void assignRoles(String userId,List<String> roles);
 }

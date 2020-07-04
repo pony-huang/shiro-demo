@@ -36,11 +36,11 @@ public class AuthTokenFilter implements Filter {
         String uri = request.getRequestURI();
 
         // 方便测试,免过滤swagger
-        String pattern = "^\\/swagger-ui.html.*";
-        if(Pattern.matches(pattern,uri)){
-            filterChain.doFilter(request,response);
-            return;
-        }
+//        String pattern = "^\\/swagger-ui.html.*";
+//        if(Pattern.matches(pattern,uri)){
+//            filterChain.doFilter(request,response);
+//            return;
+//        }
 
         if(uri.equals("/api/admin/index")){
             filterChain.doFilter(request,response);

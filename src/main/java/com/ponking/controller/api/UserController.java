@@ -53,6 +53,14 @@ public class UserController {
         return Result.success();
     }
 
+    @PutMapping("{id}")
+    @ApiOperation("分配角色")
+    @RequiresPermissions("user:assign")
+    public Result assignBy(@PathVariable("id")String userId,@RequestBody List<String> roles){
+        userService.assignRoles(userId,roles);
+        return Result.success();
+    }
+
     @DeleteMapping("{id:\\d+}")
     @RequiresPermissions("user:remove")
     @ApiOperation("删除用户")

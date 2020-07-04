@@ -1,6 +1,5 @@
-package com.ponking.config.cache;
+package com.ponking.cache;
 
-import org.apache.shiro.cache.Cache;
 import org.apache.shiro.cache.CacheException;
 import org.springframework.cache.CacheManager;
 

@@ -118,7 +118,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public boolean updateById(UserParam user) {
         Assert.notNull(user, "user is null");
         Assert.notNull(user.getId(), "user.id is null");
-        Assert.notNull(user.getPassword(), "user.password is null");
         isPwdRight(user);
 
         if (user.getRoles().size() > 0) {
@@ -133,15 +132,30 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return true;
     }
 
+    @Override
+    public void assignRoles(String userId,List<String> roles) {
+        Assert.notNull(userId,"userId is null");
+        Assert.notNull(roles,"roles is null");
+        if (roles.size() > 0) {
+            try {
+                assignRoles(userId, roles, UPDATE_OP);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     /**
      * 判断原始密码是否正确
      * 如果SuperAdmin,能修改任何用户密码,不需要填写原始密码,直接修该(Super Admin)
      * @param user
      */
-    @RequiresPermissions("user:assign")
     public void isPwdRight(UserParam user){
+        if(StringUtils.isEmpty(user.getOriginPassword())&&StringUtils.isEmpty(user.getPassword())){
+            return;
+        }
         Subject subject = SecurityUtils.getSubject();
-        if (!subject.hasRole("Super Admin")) {
+        if (subject.hasRole("Super Admin")) {
             User dbUser = baseMapper.selectById(user.getId());
             String test = RandomUtil.encryptByMd5(user.getOriginPassword(), dbUser.getSalt());
             if (!dbUser.getPassword().equals(test)) {

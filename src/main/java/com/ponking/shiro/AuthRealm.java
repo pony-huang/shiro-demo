@@ -23,7 +23,7 @@ import java.util.List;
  * @date 2020/6/25--16:00
  **/
 @Slf4j
-public class UserRealm extends AuthorizingRealm {
+public class AuthRealm extends AuthorizingRealm {
 
     @Autowired
     private UserService userService;
@@ -58,13 +58,16 @@ public class UserRealm extends AuthorizingRealm {
         log.info("===>>> 正在验证身份...");
         UsernamePasswordToken token = (UsernamePasswordToken) authenticationToken;
         String username = token.getUsername();
-        Object principal = token.getPrincipal();
         User user = userService.getOne(new QueryWrapper<User>().eq("username", username));
         if(user == null){
-            throw new RuntimeException("no user");
+            throw new UnknownAccountException();
         }
+        if(user.getState().equals(1)){
+            throw new LockedAccountException();
+        }
+
         SimpleAuthenticationInfo info =
-                new SimpleAuthenticationInfo(principal,user.getPassword(),
+                new SimpleAuthenticationInfo(username,user.getPassword(),
                         ByteSource.Util.bytes(user.getSalt()),getName());
         log.info("===>>> 验证身份成功");
         return info;

@@ -12,7 +12,6 @@ import java.util.UUID;
  **/
 public class RandomUtil {
 
-    private final static Random RANDOM = new Random(System.currentTimeMillis());
 
     private final static int HASH_TIMES = 1024;
 
