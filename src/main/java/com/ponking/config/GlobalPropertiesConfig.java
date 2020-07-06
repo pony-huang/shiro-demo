@@ -2,6 +2,7 @@ package com.ponking.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
@@ -10,17 +11,15 @@ import org.springframework.stereotype.Component;
  **/
 @Component
 @Data
+@ConfigurationProperties(prefix = "audience")
 public class GlobalPropertiesConfig {
 
-    @Value("${audience.clientId}")
+
     private String clientId;
 
-    @Value("${audience.base64Secret}")
     private String base64Secret;
 
-    @Value("${audience.name}")
     private String name;
 
-    @Value("${audience.expiresSecond}")
     private int expiresSecond;
 }

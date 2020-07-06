@@ -3,6 +3,7 @@ package com.ponking.service;
 import com.ponking.model.dto.UserDTO;
 import com.ponking.model.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.ponking.model.params.RegisterUserParam;
 import com.ponking.model.params.UserParam;
 import com.ponking.model.params.UserQuery;
 import com.ponking.model.vo.UserListVo;
@@ -27,4 +28,6 @@ public interface UserService extends BaseService<UserDTO,User> {
     boolean updateById(UserParam userParam);
 
     void assignRoles(String userId,List<String> roles);
+
+    void signInUser(RegisterUserParam userParam);
 }

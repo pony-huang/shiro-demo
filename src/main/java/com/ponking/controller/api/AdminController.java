@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.ponking.model.entity.User;
 import com.ponking.model.entity.UserRole;
 import com.ponking.model.params.LoginParam;
+import com.ponking.model.params.RegisterUserParam;
 import com.ponking.model.result.Result;
 import com.ponking.service.PermissionService;
 import com.ponking.service.UserService;
@@ -32,18 +33,27 @@ public class AdminController {
     private UserService userService;
 
     @Autowired
-    private PermissionService permissionService;
+    private JwtUtil jwtUtil;
+
 
     @PostMapping("login")
     @ApiModelProperty("登录")
     public Result login(@RequestBody LoginParam loginParam) {
         Assert.notNull(loginParam, "loginParam is null");
         LoginUtil.login(loginParam);
-        String token = JwtUtil.createToken(userService.getOne(
+        String token = jwtUtil.createToken(userService.getOne(
                 new QueryWrapper<User>().eq("username", loginParam.getUsername())));
         HashMap<String, String> data = new HashMap<>();
         data.put("token", token);
         return Result.success().data(data);
+    }
+
+
+    @PostMapping("register")
+    @ApiModelProperty("注册")
+    public Result login(@RequestBody RegisterUserParam userParam) {
+        userService.signInUser(userParam);
+        return Result.success();
     }
 
     @GetMapping("info")
@@ -61,24 +71,11 @@ public class AdminController {
         return Result.success();
     }
 
-    /**
-     * 模拟数据测试
-     *
-     * @param token
-     * @return
-     */
     private Map<String, Object> getPermissions(String token) {
         HashMap<String, Object> res = new HashMap<>();
-
-
-        String username = JwtUtil.getUsername(token);
-
-        List<String> roles = permissionService.listPermissionByUserName(username);
+        String username = jwtUtil.getUsername(token);
+        List<String> roles = jwtUtil.getRoles(token);
         User user = userService.getOne(new QueryWrapper<User>().eq("username", username));
-
-        // 暂时模拟数据 todo
-        roles.addAll(Arrays.asList("admin", "editor"));
-
         res.put("roles", roles);
         res.put("introduction", "I am a " + user.getNickName());
         res.put("avatar", user.getAvatar());

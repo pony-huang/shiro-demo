@@ -1,6 +1,8 @@
 package com.ponking.shiro;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.ponking.constant.AuthRealmConstants;
+import com.ponking.exception.GlobalException;
 import com.ponking.model.entity.Permission;
 import com.ponking.model.entity.User;
 import com.ponking.service.PermissionService;
@@ -40,9 +42,8 @@ public class AuthRealm extends AuthorizingRealm {
         String username = principalCollection.getPrimaryPrincipal().toString();
         User user = userService.getOne(new QueryWrapper<User>().eq("username", username));
         if (user == null) {
-            throw new RuntimeException("no user");
+            throw new GlobalException("no user");
         }
-
         SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
 
         roleService.listRolesByUserName(user.getUsername())
@@ -62,10 +63,9 @@ public class AuthRealm extends AuthorizingRealm {
         if(user == null){
             throw new UnknownAccountException();
         }
-        if(user.getState().equals(1)){
+        if(user.getState() != AuthRealmConstants.LOCKED_ACCOUNT){
             throw new LockedAccountException();
         }
-
         SimpleAuthenticationInfo info =
                 new SimpleAuthenticationInfo(username,user.getPassword(),
                         ByteSource.Util.bytes(user.getSalt()),getName());

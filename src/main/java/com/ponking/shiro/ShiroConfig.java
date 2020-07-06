@@ -11,6 +11,7 @@ import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.spring.LifecycleBeanPostProcessor;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
+import org.apache.shiro.web.filter.session.NoSessionCreationFilter;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
@@ -33,9 +34,6 @@ import java.util.*;
 public class ShiroConfig {
 
 
-
-
-
     @Bean(name = "authRealm")
     public AuthRealm realm(@Qualifier(value = "cacheManager")CacheManager cacheManager) {
         AuthRealm authRealm = new AuthRealm();
@@ -51,12 +49,6 @@ public class ShiroConfig {
      * 添加缓存
      * @return
      */
-    @Bean(name = "cacheManager")
-    public CacheManager cacheManager(@Qualifier(value = "redisTemplate") RedisTemplate redisTemplate) {
-        return new RedisCacheManager(redisTemplate);
-    }
-
-
     @Bean(name = "cacheManager")
     public CacheManager cacheManager() {
         MemoryConstrainedCacheManager cacheManager = new MemoryConstrainedCacheManager();
@@ -99,19 +91,22 @@ public class ShiroConfig {
 
         // 添加过滤器
         Map<String, Filter> filters = new LinkedHashMap<>();
-        filters.put("authc", new AuthTokenFilter());
+        filters.put("authTokenFilter", new AuthTokenFilter());
+        filters.put("noSession",new NoSessionCreationFilter());
         shiroFilterFactoryBean.setFilters(filters);
+
 
         //用LinkedHashMap添加拦截的uri,其中authc指定需要认证的uri，anon指定排除认证的uri
         //各默认过滤器常用如下(注意URL Pattern里用到的是两颗星,这样才能实现任意层次的全匹配)
         Map<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
         filterChainDefinitionMap.put("/api/admin/login", "anon");
+        filterChainDefinitionMap.put("/api/admin/register", "anon");
         filterChainDefinitionMap.put("/api/admin/error", "anon");
         filterChainDefinitionMap.put("/api/admin/index", "anon");
         filterChainDefinitionMap.put("/api/admin/index.html", "anon");
         filterChainDefinitionMap.put("/static/**", "anon");
-        filterChainDefinitionMap.put("/swagger-ui.html/**", "authc");
-        filterChainDefinitionMap.put("/api/**", "authc");
+        filterChainDefinitionMap.put("/swagger-ui.html/**", "anon");
+        filterChainDefinitionMap.put("/api/admin/**", "authc");
 
 
         //设置登录失败，授权成功、授权失败之后的uri

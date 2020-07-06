@@ -41,10 +41,10 @@ public class SwaggerConfig {
                 .title("Halo API Documentation")
                 .description("Documentation for Shiro-demo API")
                 .version("version 1.0.0")
-                .termsOfServiceUrl("https://www.baidu.com")
-                .contact(new Contact("halo-dev", "https://www.baidu.com", "i#ryanc.cc"))
+                .termsOfServiceUrl("https://www.github.com")
+                .contact(new Contact("halo-dev", "https://www.github.com", "i#ryanc.cc"))
                 .license("GNU General Public License v3.0")
-                .licenseUrl("https://www.baidu.com")
+                .licenseUrl("https://www.github.com")
                 .build();
     }
 }

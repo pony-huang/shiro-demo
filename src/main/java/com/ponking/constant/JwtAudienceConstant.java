@@ -1,4 +1,4 @@
-package com.ponking.common;
+package com.ponking.constant;
 
 import com.ponking.config.GlobalPropertiesConfig;
 import org.springframework.beans.factory.annotation.Autowired;

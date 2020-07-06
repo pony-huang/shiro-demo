@@ -1,39 +1,44 @@
 package com.ponking.utils;
 
-import com.ponking.common.JwtAudienceConstant;
+import com.ponking.constant.JwtAudienceConstant;
 import com.ponking.exception.GlobalException;
 import com.ponking.model.entity.User;
+import com.ponking.service.PermissionService;
 import io.jsonwebtoken.*;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 import java.security.Key;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Peng
  * @date 2020/6/25--15:26
  **/
+@Slf4j
+@Component
 public class JwtUtil {
 
-    private static Logger log = LoggerFactory.getLogger(JwtUtil.class);
-
+    @Autowired
+    private PermissionService permissionService;
 
     /**
      * 解析jwt
+     *
      * @param token
      * @return
      */
-    public static Claims parseJWT(String token) {
+    private Claims getTokenBody(String token) {
         try {
-            Claims claims = Jwts.parser()
+            Claims body = Jwts.parser()
                     .setSigningKey(DatatypeConverter.parseBase64Binary(JwtAudienceConstant.BASE64_SECRET))
                     .parseClaimsJws(token).getBody();
-            return claims;
+            return body;
         } catch (ExpiredJwtException eje) {
             throw new GlobalException("Token过期...");
         } catch (Exception e) {
@@ -43,41 +48,33 @@ public class JwtUtil {
 
     /**
      * 构建jwt
+     *
      * @param user
      * @return
      */
-    public static String createToken(User user) {
+    public String createToken(User user) {
         try {
             // 使用HS256加密算法
             SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
-
-            long nowMillis = System.currentTimeMillis();
-
             //生成签名密钥
             byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(JwtAudienceConstant.BASE64_SECRET);
             Key signingKey = new SecretKeySpec(apiKeySecretBytes, signatureAlgorithm.getJcaName());
+            long nowMillis = System.currentTimeMillis();
+            long expMillis = nowMillis + JwtAudienceConstant.EXPIRES_SECOND * 1000;
 
-
-            Map<String,Object> claims = new HashMap<>();
-            claims.put("userId",user.getId());
-            claims.put("username",user.getUsername());
-
+            Map<String, Object> claims = new HashMap<>();
+            List<String> roles = permissionService.listPermissionByUserName(user.getUsername());
+            claims.put("roles",String.join(",",roles));
+            String username = user.getUsername();
             //添加构成JWT的参数
-            JwtBuilder builder = Jwts.builder().setHeaderParam("typ", "JWT")
-                    .setSubject(user.getUsername())
-                    .setIssuer(JwtAudienceConstant.CLIENT_ID)
-                    .setIssuedAt(new Date())
-                    .setAudience(JwtAudienceConstant.NAME)
-                    .signWith(signatureAlgorithm, signingKey);
-            builder.setClaims(claims);
-            //添加Token过期时间
-            int expiresSecond = JwtAudienceConstant.EXPIRES_SECOND;
-            if (expiresSecond >= 0) {
-                long expMillis = nowMillis + expiresSecond;
-                Date exp = new Date(expMillis);
-                builder.setExpiration(exp);
-            }
-            //生成JWT
+            JwtBuilder builder = Jwts.builder()
+                    .setHeaderParam("typ", "JWT")
+                    .setSubject(username)
+                    .setIssuer(JwtAudienceConstant.NAME)
+                    .setIssuedAt(new Date(nowMillis))
+                    .signWith(signatureAlgorithm, signingKey)
+                    .setExpiration(new Date(expMillis))
+                    .addClaims(claims);
             return builder.compact();
         } catch (Exception e) {
             log.error("签名失败", e);
@@ -92,27 +89,31 @@ public class JwtUtil {
      * @param token
      * @return
      */
-//    public static String getUsername(String token) {
-//        return parseJWT(token).getSubject();
-//    }
+    public String getUsername(String token) {
+        return getTokenBody(token).getSubject();
+    }
 
     /**
-     * 从token中获取用户ID
+     * 获取角色
      * @param token
      * @return
      */
-    public static String getUserId(String token){
-        return parseJWT(token).get("userId", String.class);
+    public List<String> getRoles(String token){
+        String roles = getTokenBody(token).get("roles", String.class);
+        String[] split = roles.split(",");
+        return Arrays.asList(split);
     }
 
     /**
      * 从token中获取用户ID
+     *
      * @param token
      * @return
      */
-    public static String getUsername(String token){
-        return parseJWT(token).get("username", String.class);
+    public String getUserId(String token) {
+        return getTokenBody(token).get("userId", String.class);
     }
+
 
     /**
      * 是否已过期
@@ -120,24 +121,7 @@ public class JwtUtil {
      * @param token
      * @return
      */
-    public static boolean isExpiration(String token) {
-        return parseJWT(token).getExpiration().before(new Date());
-    }
-
-    /**
-     * 测试
-     * @param args
-     */
-    public static void main(String[] args) {
-        User user = new User();
-        user.setId("12345678");
-        user.setNickName("HelloWorld");
-        user.setUsername("admin");
-        String token = createToken(user);
-        System.out.println(token);
-
-        System.out.println("userId:"+getUserId(token));
-        System.out.println("username:"+getUsername(token));
-
+    public  boolean isExpiration(String token) {
+        return getTokenBody(token).getExpiration().before(new Date());
     }
 }

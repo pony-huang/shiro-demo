@@ -8,6 +8,7 @@ import com.ponking.model.entity.Role;
 import com.ponking.model.entity.User;
 import com.ponking.mapper.UserMapper;
 import com.ponking.model.entity.UserRole;
+import com.ponking.model.params.RegisterUserParam;
 import com.ponking.model.params.UserParam;
 import com.ponking.model.params.UserQuery;
 import com.ponking.model.vo.UserListVo;
@@ -143,6 +144,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public void signInUser(RegisterUserParam registerUserParam) {
+        Assert.notNull(registerUserParam, "param is null");
+        User user = new User();
+        BeanUtils.copyProperties(registerUserParam,user);
+        String salt = RandomUtil.createSalt();
+        user.setSalt(salt);
+        user.setPassword(RandomUtil.encryptByMd5(user.getPassword(), salt));
+        this.save(user);
     }
 
     /**
