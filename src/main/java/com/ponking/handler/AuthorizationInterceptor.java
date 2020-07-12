@@ -1,6 +1,6 @@
 package com.ponking.handler;
 
-import com.ponking.constant.AuthorizationConstant;
+import com.ponking.constant.AuthorizationConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -34,7 +34,7 @@ public class AuthorizationInterceptor extends HandlerInterceptorAdapter {
         log.info(Arrays.toString(annotations));
 //        System.out.println(Arr);
         //从header中得到token
-        String token = request.getHeader(AuthorizationConstant.HEADER_TOKEN_NAME);
+        String token = request.getHeader(AuthorizationConstants.HEADER_TOKEN_NAME);
         //System.out.println("authorization = " + authorization);
         //验证token
 //        JwtUtil.parseJWT(token,audience.getBase64Secret());

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
  * @date 2020/6/29--13:10
  **/
 @Component
-public class JwtAudienceConstant {
+public class JwtAudienceConstants {
 
 
     public static String CLIENT_ID;
@@ -18,7 +18,7 @@ public class JwtAudienceConstant {
     public static int EXPIRES_SECOND;
 
     @Autowired
-    public JwtAudienceConstant(GlobalPropertiesConfig globalPropertiesConfig) {
+    public JwtAudienceConstants(GlobalPropertiesConfig globalPropertiesConfig) {
         CLIENT_ID = globalPropertiesConfig.getClientId();
         BASE64_SECRET = globalPropertiesConfig.getBase64Secret();
         NAME = globalPropertiesConfig.getName();

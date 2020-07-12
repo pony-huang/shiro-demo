@@ -1,6 +1,7 @@
 package com.ponking.controller.api;
 
 
+import com.ponking.aop.annotation.Log;
 import com.ponking.model.dto.RoleDTO;
 import com.ponking.model.params.RoleParam;
 import com.ponking.model.params.RoleQuery;
@@ -53,6 +54,7 @@ public class RoleController {
         return Result.success().data(roleService.convertTo(roleService.getById(id)));
     }
 
+    @Log
     @PostMapping
     @ApiOperation("添加角色")
     @RequiresPermissions("role:add")
@@ -61,6 +63,17 @@ public class RoleController {
         return Result.success().data(roleParam);
     }
 
+    @Log
+    @PutMapping("{id}")
+    @ApiOperation("更新角色")
+    @RequiresPermissions("role:update")
+    public Result updateBy(@PathVariable("id")String id,@RequestBody RoleParam roleParam){
+        Assert.notNull(id,"id is null");
+        roleService.updateById(roleParam);
+        return Result.success();
+    }
+
+    @Log
     @DeleteMapping("{id:\\d+}")
     @ApiOperation("删除角色")
     @RequiresPermissions("role:remove")
@@ -70,6 +83,7 @@ public class RoleController {
         return Result.success();
     }
 
+    @Log
     @DeleteMapping
     @ApiOperation("批量删除角色")
     @RequiresPermissions("role:remove")
@@ -78,12 +92,5 @@ public class RoleController {
         return Result.success();
     }
 
-    @PutMapping("{id}")
-    @ApiOperation("更新角色")
-    @RequiresPermissions("role:update")
-    public Result updateBy(@PathVariable("id")String id,@RequestBody RoleParam roleParam){
-        Assert.notNull(id,"id is null");
-        roleService.updateById(roleParam);
-        return Result.success();
-    }
+
 }

@@ -1,10 +1,9 @@
 package com.ponking.filter;
 
 
-import com.ponking.constant.AuthorizationConstant;
-import com.ponking.constant.JwtAudienceConstant;
+import com.ponking.constant.AuthorizationConstants;
+import com.ponking.constant.JwtAudienceConstants;
 import com.ponking.exception.GlobalException;
-import com.ponking.utils.JwtUtil;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,12 +31,12 @@ public class AuthTokenFilter implements Filter {
         log.info("AuthTokenFilter 执行了....");
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
-        String token = request.getHeader(AuthorizationConstant.TOKEN_HEADER);
+        String token = request.getHeader(AuthorizationConstants.TOKEN_HEADER);
         if(token == null){
             throw new GlobalException("token为空,未进行认证登录");
         }
         boolean isExp = Jwts.parser()
-                .setSigningKey(DatatypeConverter.parseBase64Binary(JwtAudienceConstant.BASE64_SECRET))
+                .setSigningKey(DatatypeConverter.parseBase64Binary(JwtAudienceConstants.BASE64_SECRET))
                 .parseClaimsJws(token).getBody().getExpiration().before(new Date());
         if(isExp){
             throw new GlobalException(("toke已过期"));

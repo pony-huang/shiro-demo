@@ -134,23 +134,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public void assignRoles(String userId,List<String> roles) {
-        Assert.notNull(userId,"userId is null");
-        Assert.notNull(roles,"roles is null");
-        if (roles.size() > 0) {
-            try {
-                assignRoles(userId, roles, UPDATE_OP);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+    public void assignRoles(String userId, List<String> roles) {
+        Assert.notNull(userId, "userId is null");
+        Assert.notNull(roles, "roles is null");
+        assignRoles(userId, roles, UPDATE_OP);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void signInUser(RegisterUserParam registerUserParam) {
         Assert.notNull(registerUserParam, "param is null");
         User user = new User();
-        BeanUtils.copyProperties(registerUserParam,user);
+        BeanUtils.copyProperties(registerUserParam, user);
         String salt = RandomUtil.createSalt();
         user.setSalt(salt);
         user.setPassword(RandomUtil.encryptByMd5(user.getPassword(), salt));
@@ -160,10 +155,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     /**
      * 判断原始密码是否正确
      * 如果SuperAdmin,能修改任何用户密码,不需要填写原始密码,直接修该(Super Admin)
+     *
      * @param user
      */
-    public void isPwdRight(UserParam user){
-        if(StringUtils.isEmpty(user.getOriginPassword())&&StringUtils.isEmpty(user.getPassword())){
+    public void isPwdRight(UserParam user) {
+        if (StringUtils.isEmpty(user.getOriginPassword()) && StringUtils.isEmpty(user.getPassword())) {
             return;
         }
         Subject subject = SecurityUtils.getSubject();
@@ -188,23 +184,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @param roleIds
      * @param op
      */
+    @Transactional(rollbackFor = Exception.class)
     @RequiresPermissions("user:assign")
     private void assignRoles(String userId, List<String> roleIds, String op) {
-
         // 若更新操作,先删除旧数据，在插入新数据达到更新目的
         if (op.equals(UserServiceImpl.UPDATE_OP)) {
             QueryWrapper<UserRole> wrapper = new QueryWrapper<>();
             wrapper.eq("user_id", userId);
             userRoleService.remove(wrapper);
         }
-
-        List<UserRole> userRoles = roleIds.stream().map(roleId -> {
-            UserRole userRole = new UserRole();
-            userRole.setRoleId(roleId);
-            userRole.setUserId(userId);
-            return userRole;
-        }).collect(Collectors.toList());
-        userRoleService.saveBatch(userRoles);
+        if (roleIds.size() > 0) {
+            List<UserRole> userRoles = roleIds.stream().map(roleId -> {
+                UserRole userRole = new UserRole();
+                userRole.setRoleId(roleId);
+                userRole.setUserId(userId);
+                return userRole;
+            }).collect(Collectors.toList());
+            userRoleService.saveBatch(userRoles);
+        }
     }
 
     /**
@@ -214,7 +211,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @param op
      */
     @Deprecated
-    private void insertOrUpdateUserRole(UserParam user, String op) {
+    @Transactional(rollbackFor = Exception.class)
+    void insertOrUpdateUserRole(UserParam user, String op) {
         if (op.equals(UserServiceImpl.UPDATE_OP)) {
             QueryWrapper<UserRole> wrapper = new QueryWrapper<>();
             wrapper.eq("user_id", user.getId());

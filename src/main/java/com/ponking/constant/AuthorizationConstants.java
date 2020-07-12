@@ -4,9 +4,9 @@ package com.ponking.constant;
  * @author Peng
  * @date 2020/6/28--23:49
  **/
-public class AuthorizationConstant {
+public class AuthorizationConstants {
 
-    private AuthorizationConstant(){
+    private AuthorizationConstants(){
     }
 
 

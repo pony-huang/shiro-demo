@@ -6,9 +6,9 @@
     <select id="selectPermissionsByUserName" resultType="java.lang.String">
         SELECT p.permission_value
         from acl_user u
-        RIGHT JOIN acl_user_role ur ON u.id = ur.user_id
-        RIGHT JOIN acl_role_permission rp ON ur.role_id = rp.role_id
-        RIGHT JOIN acl_permission p on rp.permission_id = p.id
+        RIGHT JOIN acl_user_role ur ON u.id = ur.user_id and ur.is_deleted = 0
+        RIGHT JOIN acl_role_permission rp ON ur.role_id = rp.role_id and rp.is_deleted = 0
+        RIGHT JOIN acl_permission p on rp.permission_id = p.id and p.is_deleted = 0 and p.is_deleted = 0
         WHERE p.permission_value is NOT NULL AND  u.username = #{name}
     </select>
 

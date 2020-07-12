@@ -54,6 +54,13 @@
 <!--            <version>${p6spy.version}</version>-->
 <!--        </dependency>-->
 
+
+<!--        aop 日志-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
@@ -72,10 +79,10 @@
 <!--            <artifactId>spring-boot-starter-cache</artifactId>-->
 <!--        </dependency>-->
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-thymeleaf</artifactId>-->
+<!--        </dependency>-->
 
 
         <!-- https://mvnrepository.com/artifact/org.apache.shiro/shiro-spring -->

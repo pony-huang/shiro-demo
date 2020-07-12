@@ -1,13 +1,11 @@
 package com.ponking.utils;
 
-import com.ponking.constant.JwtAudienceConstant;
+import com.ponking.constant.JwtAudienceConstants;
 import com.ponking.exception.GlobalException;
 import com.ponking.model.entity.User;
 import com.ponking.service.PermissionService;
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +34,7 @@ public class JwtUtil {
     private Claims getTokenBody(String token) {
         try {
             Claims body = Jwts.parser()
-                    .setSigningKey(DatatypeConverter.parseBase64Binary(JwtAudienceConstant.BASE64_SECRET))
+                    .setSigningKey(DatatypeConverter.parseBase64Binary(JwtAudienceConstants.BASE64_SECRET))
                     .parseClaimsJws(token).getBody();
             return body;
         } catch (ExpiredJwtException eje) {
@@ -57,10 +55,10 @@ public class JwtUtil {
             // 使用HS256加密算法
             SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
             //生成签名密钥
-            byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(JwtAudienceConstant.BASE64_SECRET);
+            byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(JwtAudienceConstants.BASE64_SECRET);
             Key signingKey = new SecretKeySpec(apiKeySecretBytes, signatureAlgorithm.getJcaName());
             long nowMillis = System.currentTimeMillis();
-            long expMillis = nowMillis + JwtAudienceConstant.EXPIRES_SECOND * 1000;
+            long expMillis = nowMillis + JwtAudienceConstants.EXPIRES_SECOND * 1000;
 
             Map<String, Object> claims = new HashMap<>();
             List<String> roles = permissionService.listPermissionByUserName(user.getUsername());
@@ -70,7 +68,7 @@ public class JwtUtil {
             JwtBuilder builder = Jwts.builder()
                     .setHeaderParam("typ", "JWT")
                     .setSubject(username)
-                    .setIssuer(JwtAudienceConstant.NAME)
+                    .setIssuer(JwtAudienceConstants.NAME)
                     .setIssuedAt(new Date(nowMillis))
                     .signWith(signatureAlgorithm, signingKey)
                     .setExpiration(new Date(expMillis))

@@ -100,6 +100,7 @@ public class ShiroConfig {
         //各默认过滤器常用如下(注意URL Pattern里用到的是两颗星,这样才能实现任意层次的全匹配)
         Map<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
         filterChainDefinitionMap.put("/api/admin/login", "anon");
+        filterChainDefinitionMap.put("/api/admin/logout", "anon");
         filterChainDefinitionMap.put("/api/admin/register", "anon");
         filterChainDefinitionMap.put("/api/admin/error", "anon");
         filterChainDefinitionMap.put("/api/admin/index", "anon");

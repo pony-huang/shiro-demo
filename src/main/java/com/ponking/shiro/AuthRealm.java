@@ -38,25 +38,26 @@ public class AuthRealm extends AuthorizingRealm {
 
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
-        log.info("===>>> 权限配置中...");
+        log.info("===>>> doGetAuthorizationInfo start...");
         String username = principalCollection.getPrimaryPrincipal().toString();
         User user = userService.getOne(new QueryWrapper<User>().eq("username", username));
         if (user == null) {
             throw new GlobalException("no user");
         }
-        SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
 
+        SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
         roleService.listRolesByUserName(user.getUsername())
                 .stream().forEach(info::addRole);
         permissionService.listPermissionByUserName(user.getUsername())
                 .stream().forEach(info::addStringPermission);
-        log.info("===>>> 完成权限配置");
+
+        log.info("===>>> doGetAuthorizationInfo end...");
         return info;
     }
 
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken) throws AuthenticationException {
-        log.info("===>>> 正在验证身份...");
+        log.info("===>>> doGetAuthenticationInfo start...");
         UsernamePasswordToken token = (UsernamePasswordToken) authenticationToken;
         String username = token.getUsername();
         User user = userService.getOne(new QueryWrapper<User>().eq("username", username));
@@ -69,7 +70,7 @@ public class AuthRealm extends AuthorizingRealm {
         SimpleAuthenticationInfo info =
                 new SimpleAuthenticationInfo(username,user.getPassword(),
                         ByteSource.Util.bytes(user.getSalt()),getName());
-        log.info("===>>> 验证身份成功");
+        log.info("===>>> doGetAuthenticationInfo end...");
         return info;
     }
 }

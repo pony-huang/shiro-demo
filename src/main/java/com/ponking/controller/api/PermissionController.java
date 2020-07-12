@@ -1,12 +1,13 @@
 package com.ponking.controller.api;
 
 
-import com.ponking.controller.AbstractBaseController;
+import com.ponking.aop.annotation.Log;
 import com.ponking.model.dto.PermissionDTO;
 import com.ponking.model.entity.Permission;
 import com.ponking.model.params.PermissionParam;
 import com.ponking.model.result.Result;
 import com.ponking.service.PermissionService;
+import io.swagger.annotations.ApiOperation;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
@@ -31,6 +32,7 @@ public class PermissionController {
 
 
     @GetMapping
+    @ApiOperation("获取菜单列表")
     @RequiresPermissions("permission:list")
     public Result fetchList(){
         List<PermissionDTO> result = permissionService.convertTo(permissionService.list());
@@ -39,6 +41,7 @@ public class PermissionController {
 
 
     @GetMapping("{id}")
+    @ApiOperation("获取菜单信息")
     @RequiresPermissions("permission:list")
     public Result getById(@PathVariable("id")String id){
         Assert.notNull(id,"id is null");
@@ -46,7 +49,9 @@ public class PermissionController {
         return Result.success(data);
     }
 
+    @Log
     @PostMapping
+    @ApiOperation("添加菜单")
     @RequiresPermissions("permission:add")
     public Result createBy(@RequestBody PermissionParam permissionParam){
         Assert.notNull(permissionParam,"permissionParam is null");
@@ -54,6 +59,8 @@ public class PermissionController {
         return Result.success();
     }
 
+    @Log
+    @ApiOperation("更新菜单")
     @PutMapping("{id}")
     @RequiresPermissions("permission:update")
     public Result updateBy(@PathVariable("id")String id,@RequestBody PermissionParam permissionParam){
@@ -63,6 +70,8 @@ public class PermissionController {
     }
 
 
+    @Log
+    @ApiOperation("删除菜单")
     @DeleteMapping("{id}")
     @RequiresPermissions("permission:remove")
     public Result deleteById(@PathVariable("id")String id){
@@ -71,6 +80,8 @@ public class PermissionController {
     }
 
 
+    @Log
+    @ApiOperation("删除菜单")
     @DeleteMapping
     @RequiresPermissions("permission:remove")
     public Result deleteByIds(@RequestBody List<String> ids){

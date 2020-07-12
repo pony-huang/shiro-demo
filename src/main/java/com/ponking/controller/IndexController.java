@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @date 2020/6/30--17:28
  **/
 @Controller
-@RequestMapping("/api/admin")
+@RequestMapping("/")
 public class IndexController {
 
     @RequestMapping("index")
